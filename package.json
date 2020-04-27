@@ -1,6 +1,6 @@
 {
   "name": "@ntrip/geonames",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "GeoNames.org Parser",
   "main": "build/index.js",
   "types": "build/index.d.ts",
