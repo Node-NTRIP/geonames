@@ -122,7 +122,7 @@ function distance(a: LatLng, b: LatLng) {
     if ((a.latitude === b.latitude) && (a.longitude === b.longitude)) return 0;
 
     const aLatitude = a.latitude * Math.PI / 180;
-    const bLatitude = a.longitude * Math.PI / 180;
+    const bLatitude = b.latitude * Math.PI / 180;
     const theta = (a.longitude - b.longitude) * Math.PI / 180;
     return Math.acos(
             Math.max(-1, Math.min(1,
