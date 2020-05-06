@@ -17,9 +17,7 @@ export class GeoNames {
             crlfDelay: Infinity
         });
 
-        for await (const line of input) {
-            yield new Place(line);
-        }
+        for await (const line of input) yield new Place(line);
     }
 
     async nearest(to: LatLng) {
@@ -42,64 +40,38 @@ export class GeoNames {
     }
 }
 
-const TRANSFORMATIONS = [
-    parseInt,
-
-    null,
-    null,
-    (e: string) => e.split(','),
-
-    parseFloat,
-    parseFloat,
-
-    null,
-    null,
-
-    null,
-    null,
-
-    null,
-    null,
-    null,
-    null,
-
-    parseInt,
-
-    parseInt,
-    parseInt,
-
-    null,
-    Date.parse
-];
+type Transformation = ((input: string) => void) | null;
+const transformations: Transformation[] = [];
+const F = (transformation: Transformation = null) => (t: any, k: any): void => { transformations.push(transformation); };
 
 export class Place {
-    id: number;
+    @F() id: number;
 
-    name: string;
-    asciiName: string;
-    alternativeNames: string[];
+    @F() name: string;
+    @F() asciiName: string;
+    @F(e => e.split(',')) alternativeNames: string[];
 
-    latitude: number;
-    longitude: number;
+    @F(parseFloat) latitude: number;
+    @F(parseFloat) longitude: number;
 
-    featureClass: string;
-    featureCode: string;
+    @F() featureClass: string;
+    @F() featureCode: string;
 
-    countryCode: string;
-    alternativeCountryCode: string;
+    @F() countryCode: string;
+    @F() alternativeCountryCode: string;
 
-    adminCode1: string;
-    adminCode2: string;
-    adminCode3: string;
-    adminCode4: string;
+    @F() adminCode1: string;
+    @F() adminCode2: string;
+    @F() adminCode3: string;
+    @F() adminCode4: string;
 
-    population: number;
+    @F(parseInt) population: number;
 
-    elevation: number;
-    digitalElevationModel: number;
+    @F(parseInt) elevation: number;
+    @F(parseInt) digitalElevationModel: number;
 
-    timezone: string;
-    modificationDate: Date;
+    @F() timezone: string;
+    @F(Date.parse) modificationDate: Date;
 
     constructor(line: string) {
         const elements = line.split('\t');
@@ -108,7 +80,7 @@ export class Place {
             this.featureClass, this.featureCode, this.countryCode, this.alternativeCountryCode,
             this.adminCode1, this.adminCode2, this.adminCode3, this.adminCode4, this.population,
             this.elevation, this.digitalElevationModel, this.timezone, this.modificationDate]
-                = elements.map((e, i) => TRANSFORMATIONS[i] === null ? e : TRANSFORMATIONS[i]!(e)) as any[];
+                = elements.map((e, i) => transformations[i] === null ? e : transformations[i]!(e)) as any[];
     }
 
     distance(to: LatLng) {
