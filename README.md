@@ -1,8 +1,8 @@
 # GeoNames.org Data File Parser
-Helper class to read [GeoNames](http://geonames.org) data files.
+Helper class to read [GeoNames](http://geonames.org) data files with 0 dependencies.
 
 ```typescript
-import {GeoNames} from '@ntrip/geonames';
+import {GeoNames} from 'geonames';
 ```
 
 ## GeoNames
@@ -11,15 +11,17 @@ const geoNames = new GeoNames('path/to/geonames.txt');
 ```
 
 ### Methods
-##### GeoNames.generator()
+##### async *geoNames\[Symbol.asyncIterator\]()
 Generator function to get list of places found in the data file without loading all into memory at once.
 ```typescript
-for await (let place: Place of geoNames.generator()) {
+for await (let place: Place of geoNames) {
     console.log(place.name);
 }
 ```
 
-##### GeoNames.nearest(to: {latitude: number, longitude: number})
+##### geoNames.stream()
+
+##### geoNames.nearest(to: {latitude: number, longitude: number})
 Finds the place nearest to the location provided, without loading all places into memory.
 ```typescript
 let nearest = geoNames.nearest({latitude: 53.33, longitude: -6.24});

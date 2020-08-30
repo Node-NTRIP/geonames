@@ -1,5 +1,6 @@
-const fs = require('fs');
-const readline = require('readline');
+import * as fs from 'fs';
+import * as stream from 'stream';
+import * as readline from 'readline';
 
 interface LatLng {
     latitude: number;
@@ -9,34 +10,47 @@ interface LatLng {
 export class GeoNames {
     constructor(private readonly path: string) {}
 
-    async* generator() {
+    async* [Symbol.asyncIterator](): AsyncGenerator<Place, void, void> {
         const file = fs.createReadStream(this.path);
 
-        const input = readline.createInterface({
+        const lines = readline.createInterface({
             input: file,
             crlfDelay: Infinity
         });
 
-        for await (const line of input) yield new Place(line);
+        for await (const line of lines) yield new Place(line);
     }
 
-    async nearest(to: LatLng) {
-        let closest: Place | undefined = undefined;
-        let distance = Infinity;
-        for await (const place of this.generator()) {
-            if (closest === undefined) {
-                closest = place;
-                continue;
+    stream(): stream.Readable {
+        const transform = new stream.Transform({
+            transform(line: string, encoding: string, callback: stream.TransformCallback) {
+                callback(null, new Place(line));
             }
+        });
 
-            let d = place.distance(to);
-            if (d < distance) {
-                distance = d;
-                closest = place;
+        const file = fs.createReadStream(this.path);
+
+        readline.createInterface({
+            input: file,
+            output: transform,
+            crlfDelay: Infinity
+        });
+
+        return transform;
+    }
+
+    async nearest(to: LatLng): Promise<Place | undefined> {
+        let closestPlace: Place | undefined = undefined;
+        let minDistance = Infinity;
+        for await (const place of this) {
+            const distance = place.distance(to);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPlace = place;
             }
         }
 
-        return closest;
+        return closestPlace;
     }
 }
 
